@@ -19,16 +19,58 @@ struct MyStringHash {
     // hash function entry point (i.e. this is h(k))
     HASH_INDEX_T operator()(const std::string& k) const
     {
-        // Add your code here
+      HASH_INDEX_T total = 0;
+      HASH_INDEX_T base = 36;
 
+      // Our array to hold the integer values of up to 5 groups
+      HASH_INDEX_T w[5] = {0};
+
+      // Starting at the end of w[]
+      int groupIdx = 4;
+      int length = static_cast<int>(k.length());
+      int i = length - 1;
+
+      while(i >= 0 && groupIdx >= 0){
+        HASH_INDEX_T current = 0;
+        HASH_INDEX_T multiplier = 1;
+        
+        // Processing up to 6 chars per group
+        for(int j = 0; j < 6; j++){
+          char c = k[i];
+          HASH_INDEX_T value = letterDigitToNumber(c);
+          current += value * multiplier;
+          multiplier *= base;
+          i--;
+        }
+
+        w[groupIdx] = current;
+        --groupIdx;
+      }
+
+      // Combining each group's base-36 value w/ its corresponding weight
+      for(int r = 0; r < 5; ++r){
+        total += rValues[r] * w[r];
+      }
+
+      return total;
 
     }
 
     // A likely helper function is to convert a-z,0-9 to an integral value 0-35
     HASH_INDEX_T letterDigitToNumber(char letter) const
     {
-        // Add code here or delete this helper function if you do not want it
-
+      if(letter >= 'a' && letter <= 'z'){
+        return static_cast<HASH_INDEX_T>(letter - 'a');
+      }
+      else if(letter >= 'A' && letter <= 'Z'){
+        return static_cast<HASH_INDEX_T>(letter - 'A');
+      }
+      else if(letter >= '0' && letter <= '9'){
+        return static_cast<HASH_INDEX_T>(26 + (letter - '0'));
+      }
+      else{
+        return 0;
+      }
     }
 
     // Code to generate the random R values
